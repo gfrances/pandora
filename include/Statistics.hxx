@@ -31,7 +31,7 @@ namespace Engine
 
 class Statistics
 {
-	typedef boost::mt19937 RandomEngine;
+	typedef boost::ecuyer1988 RandomEngine;
 	RandomEngine _randomGenerator;
 	static const int _distributionSize = 100000;
 

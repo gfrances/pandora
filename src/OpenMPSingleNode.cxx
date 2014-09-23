@@ -25,6 +25,7 @@
 #include <Config.hxx>
 #include <Exception.hxx>
 #include <boost/chrono.hpp>
+#include <omp.h>
 
 namespace Engine
 {
@@ -69,6 +70,8 @@ void OpenMPSingleNode::executeAgents()
 	}
 	std::random_shuffle(agentsToExecute.begin(), agentsToExecute.end());
 
+	
+	unsigned total_threads = 0;
 #ifndef PANDORAEDEBUG
 	// shared memory distibution for read-only planning actions, disabled for extreme debug
 	#pragma omp parallel for
@@ -78,6 +81,8 @@ void OpenMPSingleNode::executeAgents()
 		Agent * agent = agentsToExecute[i].get();
 		agent->updateKnowledge();
 		agent->selectActions();
+		
+		if (omp_get_thread_num() == 0) total_threads =  omp_get_num_threads();
 	}	
 	
 	for(size_t i=0; i<agentsToExecute.size(); i++)
@@ -87,6 +92,7 @@ void OpenMPSingleNode::executeAgents()
 		agent->updateState();
 	}
 	log_DEBUG(logName.str(), getWallTime() << " executed step: " << _world->getCurrentStep() << " executed agents: " << agentsToExecute.size() << " total agents: " << std::distance(_world->beginAgents(), _world->endAgents()));
+	log_DEBUG(logName.str(), getWallTime() << " Spawn threads: " << total_threads);
 }
 
 void OpenMPSingleNode::finish()
